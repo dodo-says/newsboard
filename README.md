@@ -1,5 +1,16 @@
 ## About newsboard
 
+It is a fork from https://github.com/robdelacruz/newsboard
+We hope to build an anonymous community forum based on this project.
+
+Main changes from upstream:
+
+- using html/templates
+- using flags
+- dev mode (reload templates on each request)
+
+-------
+
 newsboard is a bulletin board for posting stories and links. Inspired by HackerNews.
 
 - Submit stories and links.
@@ -9,11 +20,10 @@ newsboard is a bulletin board for posting stories and links. Inspired by HackerN
 
 ## Build and Install
 
-    $ make dep
     $ make
-    $ nb -i news.db
+    $ ./nb --init
 
-    Run 'nb news.db' to start the web service.
+    Run './nb' to start the web service.
 
 newsboard uses a single sqlite3 database file to store all submissions, users, and site settings.
 
