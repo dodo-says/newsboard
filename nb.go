@@ -522,31 +522,13 @@ func loginHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		printPageHead(w, site, false)
 		printPageNav(w, login, site, nil)
 
-		fmt.Fprintf(w, "<section class=\"main\">\n")
-		fmt.Fprintf(w, "<form class=\"simpleform\" action=\"/login/?from=%s\" method=\"post\">\n", url.QueryEscape(qfrom))
-		fmt.Fprintf(w, "<h1 class=\"heading\">Login</h1>")
-		if errmsg != "" {
-			fmt.Fprintf(w, "<div class=\"control\">\n")
-			fmt.Fprintf(w, "<p class=\"error\">%s</p>\n", errmsg)
-			fmt.Fprintf(w, "</div>\n")
-		}
-		fmt.Fprintf(w, "<div class=\"control\">\n")
-		fmt.Fprintf(w, "<label for=\"username\">username</label>\n")
-		fmt.Fprintf(w, "<input id=\"username\" name=\"username\" type=\"text\" size=\"20\" value=\"%s\">\n", f.username)
-		fmt.Fprintf(w, "</div>\n")
-
-		fmt.Fprintf(w, "<div class=\"control\">\n")
-		fmt.Fprintf(w, "<label for=\"password\">password</label>\n")
-		fmt.Fprintf(w, "<input id=\"password\" name=\"password\" type=\"password\" size=\"20\" value=\"%s\">\n", f.password)
-		fmt.Fprintf(w, "</div>\n")
-
-		fmt.Fprintf(w, "<div class=\"control\">\n")
-		fmt.Fprintf(w, "<button class=\"submit\">login</button>\n")
-		fmt.Fprintf(w, "</div>\n")
-		fmt.Fprintf(w, "</form>\n")
-
-		fmt.Fprintf(w, "<p class=\"mt-xl\"><a href=\"/createaccount/?from=%s\">Create New Account</a></p>\n", url.QueryEscape(qfrom))
-		fmt.Fprintf(w, "</section>\n")
+		getTemplate().ExecuteTemplate(w, "login", map[string]any{
+			"Site":       site,
+			"QFrom":      qfrom,
+			"ErrMessage": errmsg,
+			"Username":   f.username,
+			"Password":   f.password,
+		})
 
 		printPageFoot(w)
 	}
