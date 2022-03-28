@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"html"
 	"io"
@@ -76,51 +77,37 @@ type QIndex struct {
 	Tag      string
 }
 
-func main() {
-	os.Args = os.Args[1:]
-	sw, parms := parseArgs(os.Args)
+var (
+	developMode = flag.Bool("dev", false, "Develop mode, auto reload templates")
+	db          = flag.String("db", "news.db", "db file")
+	addr        = flag.String("addr", ":8000", "Port to listen on")
+	initData    = flag.Bool("init", false, "Initialize database")
+)
 
-	// [-i new_file]  Create and initialize newsboard file
-	if sw["i"] != "" {
-		dbfile := sw["i"]
-		if fileExists(dbfile) {
-			s := fmt.Sprintf("File '%s' already exists. Can't initialize it.\n", dbfile)
-			fmt.Printf(s)
+func main() {
+	flag.Parse()
+
+	if *initData {
+		if fileExists(*db) {
+			fmt.Printf("File '%s' already exists. Can't initialize it.\n", *db)
 			os.Exit(1)
 		}
-		createAndInitTables(dbfile)
-		os.Exit(0)
-	}
-
-	// Need to specify a notes file as first parameter.
-	if len(parms) == 0 {
-		s := `Usage:
-
-Start webservice using existing newsboard file:
-	nb <newsboard_file> [port]
-
-Initialize new newsboard file:
-	nb -i <newsboard_file>
-
-`
-		fmt.Printf(s)
+		createAndInitTables(*db)
 		os.Exit(0)
 	}
 
 	// Exit if specified notes file doesn't exist.
-	dbfile := parms[0]
-	if !fileExists(dbfile) {
-		s := fmt.Sprintf(`Newboard file '%s' doesn't exist. Create one using:
-	nb -i <newsboard_file>
-`, dbfile)
-		fmt.Printf(s)
+	if !fileExists(*db) {
+		fmt.Printf(`Newboard file '%s' doesn't exist. Create one using:
+		nb -i <newsboard_file>
+	`, *db)
 		os.Exit(1)
 	}
 
 	registerSqliteFuncs()
-	db, err := sql.Open("sqlite3_custom", dbfile)
+	db, err := sql.Open("sqlite3_custom", *db)
 	if err != nil {
-		fmt.Printf("Error opening '%s' (%s)\n", dbfile, err)
+		fmt.Printf("Error opening '%s' (%s)\n", *db, err)
 		os.Exit(1)
 	}
 
@@ -144,12 +131,8 @@ Initialize new newsboard file:
 	http.HandleFunc("/vote/", voteHandler(db))
 	http.HandleFunc("/unvote/", unvoteHandler(db))
 
-	port := "8000"
-	if len(parms) > 1 {
-		port = parms[1]
-	}
-	fmt.Printf("Listening on %s...\n", port)
-	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	fmt.Printf("Listening on %s...\n", *addr)
+	err = http.ListenAndServe(*addr, nil)
 	log.Fatal(err)
 }
 

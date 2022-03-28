@@ -2,12 +2,9 @@ package main
 
 import (
 	"embed"
-	"flag"
 	"os"
 	"text/template"
 )
-
-var developMode = flag.Bool("dev", false, "Develop mode")
 
 //go:embed res
 var templatesData embed.FS
