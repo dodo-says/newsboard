@@ -189,59 +189,6 @@ func calculate_points(votes int, submitdt string, gravityf float64) float64 {
 	return float64(votes) / pow((int(hours_since_time(submitdt))+2), gravityf)
 }
 
-func parseArgs(args []string) (map[string]string, []string) {
-	switches := map[string]string{}
-	parms := []string{}
-
-	standaloneSwitches := []string{}
-	definitionSwitches := []string{"i"}
-	fNoMoreSwitches := false
-	curKey := ""
-
-	for _, arg := range args {
-		if fNoMoreSwitches {
-			// any arg after "--" is a standalone parameter
-			parms = append(parms, arg)
-		} else if arg == "--" {
-			// "--" means no more switches to come
-			fNoMoreSwitches = true
-		} else if strings.HasPrefix(arg, "--") {
-			switches[arg[2:]] = "y"
-			curKey = ""
-		} else if strings.HasPrefix(arg, "-") {
-			if listContains(definitionSwitches, arg[1:]) {
-				// -a "val"
-				curKey = arg[1:]
-				continue
-			}
-			for _, ch := range arg[1:] {
-				// -a, -b, -ab
-				sch := string(ch)
-				if listContains(standaloneSwitches, sch) {
-					switches[sch] = "y"
-				}
-			}
-		} else if curKey != "" {
-			switches[curKey] = arg
-			curKey = ""
-		} else {
-			// standalone parameter
-			parms = append(parms, arg)
-		}
-	}
-
-	return switches, parms
-}
-
-func listContains(ss []string, v string) bool {
-	for _, s := range ss {
-		if v == s {
-			return true
-		}
-	}
-	return false
-}
-
 func fileExists(file string) bool {
 	_, err := os.Stat(file)
 	if err != nil && os.IsNotExist(err) {
