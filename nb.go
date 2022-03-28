@@ -484,44 +484,12 @@ func printPageFoot(w io.Writer) {
 	getTemplate().ExecuteTemplate(w, "footer", nil)
 }
 
-func printPageNav(w http.ResponseWriter, db *sql.DB, login *User, site *Site, qq *QIndex) {
-	fmt.Fprintf(w, "<header class=\"masthead mb-sm\">\n")
-
-	// First row nav
-	fmt.Fprintf(w, "<nav class=\"navbar\">\n")
-	// Menu section (left part)
-	fmt.Fprintf(w, "<div>\n")
-	fmt.Fprintf(w, "<h1 class=\"heading\"><a href=\"/\">%s</a></h1>\n", escape(site.Title))
-	fmt.Fprintf(w, "<ul class=\"line-menu\">\n")
-	if qq != nil {
-		if qq.Latest != "" {
-			fmt.Fprintf(w, "  <li><a href=\"/?username=%s&cat=%d&tag=%s&latest=1\">[latest]</a></li>\n", url.QueryEscape(qq.Username), qq.Cat, url.QueryEscape(qq.Tag))
-		} else {
-			fmt.Fprintf(w, "  <li><a href=\"/?username=%s&cat=%d&tag=%s&latest=1\">latest</a></li>\n", url.QueryEscape(qq.Username), qq.Cat, url.QueryEscape(qq.Tag))
-		}
-	} else {
-		fmt.Fprintf(w, "  <li><a href=\"/?latest=1\">latest</a></li>\n")
-	}
-	if login.Userid != -1 && login.Active {
-		fmt.Fprintf(w, "  <li><a href=\"/submit/\">submit</a></li>\n")
-	}
-	fmt.Fprintf(w, "</ul>\n")
-	fmt.Fprintf(w, "</div>\n")
-
-	// User section (right part)
-	fmt.Fprintf(w, "<ul class=\"line-menu right\">\n")
-	if login.Userid == -1 {
-		fmt.Fprintf(w, "<li><a href=\"/login\">login</a></li>\n")
-	} else if login.Userid == ADMIN_ID {
-		fmt.Fprintf(w, "<li><a href=\"/adminsetup/\">%s</a></li>\n", escape(login.Username))
-		fmt.Fprintf(w, "<li><a href=\"/logout\">logout</a></li>\n")
-	} else {
-		fmt.Fprintf(w, "<li><a href=\"/usersetup/\">%s</a></li>\n", escape(login.Username))
-		fmt.Fprintf(w, "<li><a href=\"/logout\">logout</a></li>\n")
-	}
-	fmt.Fprintf(w, "</ul>\n")
-	fmt.Fprintf(w, "</nav>\n")
-	fmt.Fprintf(w, "</header>\n")
+func printPageNav(w http.ResponseWriter, login *User, site *Site, qq *QIndex) {
+	getTemplate().ExecuteTemplate(w, "pageNav", map[string]any{
+		"Login":  login,
+		"Site":   site,
+		"QIndex": qq,
+	})
 }
 
 func isCorrectPassword(inputPassword, hashedpwd string) bool {
@@ -622,7 +590,7 @@ func loginHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
 		printPageHead(w, site, false)
-		printPageNav(w, db, login, site, nil)
+		printPageNav(w, login, site, nil)
 
 		fmt.Fprintf(w, "<section class=\"main\">\n")
 		fmt.Fprintf(w, "<form class=\"simpleform\" action=\"/login/?from=%s\" method=\"post\">\n", url.QueryEscape(qfrom))
@@ -732,7 +700,7 @@ func createaccountHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
 		printPageHead(w, site, false)
-		printPageNav(w, db, login, site, nil)
+		printPageNav(w, login, site, nil)
 
 		fmt.Fprintf(w, "<section class=\"main\">\n")
 		fmt.Fprintf(w, "<form class=\"simpleform\" action=\"/createaccount/?from=%s\" method=\"post\">\n", url.QueryEscape(qfrom))
@@ -823,7 +791,7 @@ func adminsetupHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "text/html")
 		printPageHead(w, site, false)
-		printPageNav(w, db, login, site, nil)
+		printPageNav(w, login, site, nil)
 
 		fmt.Fprintf(w, "<section class=\"main\">\n")
 
@@ -927,7 +895,7 @@ func usersetupHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
 		printPageHead(w, site, false)
-		printPageNav(w, db, login, site, nil)
+		printPageNav(w, login, site, nil)
 		fmt.Fprintf(w, "<section class=\"main\">\n")
 
 		fmt.Fprintf(w, "<p class=\"\"><a href=\"/edituser?userid=%d&from=%s\">Edit Account</a></p>\n", login.Userid, url.QueryEscape("/usersetup/"))
@@ -1018,7 +986,7 @@ func edituserHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
 		printPageHead(w, site, false)
-		printPageNav(w, db, login, site, nil)
+		printPageNav(w, login, site, nil)
 
 		fmt.Fprintf(w, "<div class=\"main\">\n")
 		fmt.Fprintf(w, "<section class=\"main-content\">\n")
@@ -1118,7 +1086,7 @@ func activateuserHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
 		printPageHead(w, site, false)
-		printPageNav(w, db, login, site, nil)
+		printPageNav(w, login, site, nil)
 
 		fmt.Fprintf(w, "<div class=\"main\">\n")
 		fmt.Fprintf(w, "<section class=\"main-content\">\n")
@@ -1370,7 +1338,7 @@ func indexHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 			Cat:      qcat,
 			Tag:      qtag,
 		}
-		printPageNav(w, db, login, site, qi)
+		printPageNav(w, login, site, qi)
 
 		fmt.Fprintf(w, "<section class=\"main\">\n")
 
@@ -1637,7 +1605,7 @@ WHERE e.entry_id = ?`
 
 		w.Header().Set("Content-Type", "text/html")
 		printPageHead(w, site, true)
-		printPageNav(w, db, login, site, nil)
+		printPageNav(w, login, site, nil)
 
 		fmt.Fprintf(w, "<section class=\"main\">\n")
 		if e.Thing == SUBMISSION {
@@ -1782,7 +1750,7 @@ func submitHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
 		printPageHead(w, site, false)
-		printPageNav(w, db, login, site, nil)
+		printPageNav(w, login, site, nil)
 		fmt.Fprintf(w, "<section class=\"main\">\n")
 
 		fmt.Fprintf(w, "<form class=\"simpleform mb-2xl\" method=\"post\" action=\"/submit/\">\n")
@@ -1930,7 +1898,7 @@ func delHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
 		printPageHead(w, site, false)
-		printPageNav(w, db, login, site, nil)
+		printPageNav(w, login, site, nil)
 		fmt.Fprintf(w, "<section class=\"main\">\n")
 
 		fmt.Fprintf(w, "<form class=\"simpleform mb-2xl\" method=\"post\" action=\"/del/?id=%d&from=%s\">\n", qentryid, url.QueryEscape(qfrom))
@@ -2064,7 +2032,7 @@ func editHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
 		printPageHead(w, site, false)
-		printPageNav(w, db, login, site, nil)
+		printPageNav(w, login, site, nil)
 		fmt.Fprintf(w, "<section class=\"main\">\n")
 
 		fmt.Fprintf(w, "<form class=\"simpleform mb-2xl\" method=\"post\" action=\"/edit/?id=%d\">\n", qentryid)
@@ -2306,7 +2274,7 @@ func createcatHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
 		printPageHead(w, site, false)
-		printPageNav(w, db, login, site, nil)
+		printPageNav(w, login, site, nil)
 
 		fmt.Fprintf(w, "<div class=\"main\">\n")
 		fmt.Fprintf(w, "<section class=\"main-content\">\n")
@@ -2385,7 +2353,7 @@ func editcatHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
 		printPageHead(w, site, false)
-		printPageNav(w, db, login, site, nil)
+		printPageNav(w, login, site, nil)
 
 		fmt.Fprintf(w, "<div class=\"main\">\n")
 		fmt.Fprintf(w, "<section class=\"main-content\">\n")
@@ -2465,7 +2433,7 @@ func delcatHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
 		printPageHead(w, site, false)
-		printPageNav(w, db, login, site, nil)
+		printPageNav(w, login, site, nil)
 
 		fmt.Fprintf(w, "<div class=\"main\">\n")
 		fmt.Fprintf(w, "<section class=\"main-content\">\n")
