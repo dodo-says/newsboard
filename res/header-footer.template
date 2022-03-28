@@ -1,0 +1,24 @@
+{{- define "header" -}}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{{ .Title }}</title>
+        <link rel="stylesheet" type="text/css" href="/static/style.css">
+        <link rel="stylesheet" type="text/css" href="/static/nbstyle.css">
+        {{- if .HandleVote }}
+        <script src="/static/handlevote.js" defer></script>
+        {{- end }}
+    </head>
+<body>
+<section class="body">
+<!-- header ends -->
+{{- end -}}
+
+{{- define "footer" -}}
+<!-- footer begins -->
+</section>
+</body>
+</html>
+{{- end -}}

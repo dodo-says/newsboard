@@ -473,30 +473,15 @@ func queryCat(db *sql.DB, catid int64) *Cat {
 	return &cat
 }
 
-func printPageHead(w io.Writer, jsurls []string, cssurls []string, site *Site) {
-	fmt.Fprintf(w, "<!DOCTYPE html>\n")
-	fmt.Fprintf(w, "<html>\n")
-	fmt.Fprintf(w, "<head>\n")
-	fmt.Fprintf(w, "<meta charset=\"utf-8\">\n")
-	fmt.Fprintf(w, "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n")
-	fmt.Fprintf(w, "<title>%s</title>\n", escape(site.Title))
-	fmt.Fprintf(w, "<link rel=\"stylesheet\" type=\"text/css\" href=\"/static/style.css\">\n")
-	fmt.Fprintf(w, "<link rel=\"stylesheet\" type=\"text/css\" href=\"/static/nbstyle.css\">\n")
-	for _, cssurl := range cssurls {
-		fmt.Fprintf(w, "<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\">\n", cssurl)
-	}
-	for _, jsurl := range jsurls {
-		fmt.Fprintf(w, "<script src=\"%s\" defer></script>\n", jsurl)
-	}
-	fmt.Fprintf(w, "</head>\n")
-	fmt.Fprintf(w, "<body>\n")
-	fmt.Fprintf(w, "<section class=\"body\">\n")
+func printPageHead(w io.Writer, site *Site, handleVote bool) {
+	getTemplate().ExecuteTemplate(w, "header", map[string]any{
+		"Title":      site.Title,
+		"HandleVote": handleVote,
+	})
 }
 
 func printPageFoot(w io.Writer) {
-	fmt.Fprintf(w, "</section>\n")
-	fmt.Fprintf(w, "</body>\n")
-	fmt.Fprintf(w, "</html>\n")
+	getTemplate().ExecuteTemplate(w, "footer", nil)
 }
 
 func printPageNav(w http.ResponseWriter, db *sql.DB, login *User, site *Site, qq *QIndex) {
@@ -636,7 +621,7 @@ func loginHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
-		printPageHead(w, nil, nil, site)
+		printPageHead(w, site, false)
 		printPageNav(w, db, login, site, nil)
 
 		fmt.Fprintf(w, "<section class=\"main\">\n")
@@ -746,7 +731,7 @@ func createaccountHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
-		printPageHead(w, nil, nil, site)
+		printPageHead(w, site, false)
 		printPageNav(w, db, login, site, nil)
 
 		fmt.Fprintf(w, "<section class=\"main\">\n")
@@ -837,7 +822,7 @@ func adminsetupHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		}
 
 		w.Header().Set("Content-Type", "text/html")
-		printPageHead(w, nil, nil, site)
+		printPageHead(w, site, false)
 		printPageNav(w, db, login, site, nil)
 
 		fmt.Fprintf(w, "<section class=\"main\">\n")
@@ -941,7 +926,7 @@ func usersetupHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
-		printPageHead(w, nil, nil, site)
+		printPageHead(w, site, false)
 		printPageNav(w, db, login, site, nil)
 		fmt.Fprintf(w, "<section class=\"main\">\n")
 
@@ -1032,7 +1017,7 @@ func edituserHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
-		printPageHead(w, nil, nil, site)
+		printPageHead(w, site, false)
 		printPageNav(w, db, login, site, nil)
 
 		fmt.Fprintf(w, "<div class=\"main\">\n")
@@ -1132,7 +1117,7 @@ func activateuserHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
-		printPageHead(w, nil, nil, site)
+		printPageHead(w, site, false)
 		printPageNav(w, db, login, site, nil)
 
 		fmt.Fprintf(w, "<div class=\"main\">\n")
@@ -1377,7 +1362,7 @@ func indexHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		}
 
 		w.Header().Set("Content-Type", "text/html")
-		printPageHead(w, []string{"/static/handlevote.js"}, nil, site)
+		printPageHead(w, site, true)
 
 		qi := &QIndex{
 			Latest:   qlatest,
@@ -1651,7 +1636,7 @@ WHERE e.entry_id = ?`
 		}
 
 		w.Header().Set("Content-Type", "text/html")
-		printPageHead(w, []string{"/static/handlevote.js"}, nil, site)
+		printPageHead(w, site, true)
 		printPageNav(w, db, login, site, nil)
 
 		fmt.Fprintf(w, "<section class=\"main\">\n")
@@ -1796,7 +1781,7 @@ func submitHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
-		printPageHead(w, nil, nil, site)
+		printPageHead(w, site, false)
 		printPageNav(w, db, login, site, nil)
 		fmt.Fprintf(w, "<section class=\"main\">\n")
 
@@ -1944,7 +1929,7 @@ func delHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
-		printPageHead(w, nil, nil, site)
+		printPageHead(w, site, false)
 		printPageNav(w, db, login, site, nil)
 		fmt.Fprintf(w, "<section class=\"main\">\n")
 
@@ -2078,7 +2063,7 @@ func editHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
-		printPageHead(w, nil, nil, site)
+		printPageHead(w, site, false)
 		printPageNav(w, db, login, site, nil)
 		fmt.Fprintf(w, "<section class=\"main\">\n")
 
@@ -2320,7 +2305,7 @@ func createcatHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
-		printPageHead(w, nil, nil, site)
+		printPageHead(w, site, false)
 		printPageNav(w, db, login, site, nil)
 
 		fmt.Fprintf(w, "<div class=\"main\">\n")
@@ -2399,7 +2384,7 @@ func editcatHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
-		printPageHead(w, nil, nil, site)
+		printPageHead(w, site, false)
 		printPageNav(w, db, login, site, nil)
 
 		fmt.Fprintf(w, "<div class=\"main\">\n")
@@ -2479,7 +2464,7 @@ func delcatHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 
 		w.Header().Set("Content-Type", "text/html")
 		site := querySite(db)
-		printPageHead(w, nil, nil, site)
+		printPageHead(w, site, false)
 		printPageNav(w, db, login, site, nil)
 
 		fmt.Fprintf(w, "<div class=\"main\">\n")

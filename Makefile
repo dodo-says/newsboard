@@ -1,11 +1,12 @@
 all: nb initdata
 
-nb: nb.go
-	go build -o nb nb.go
+nb:
+	go build -o nb *.go
 
-initdata: tools/initdata.go
+initdata:
 	go build -o initdata tools/initdata.go
 
 clean:
 	rm -rf nb initdata
 
+.PHONY: all nb initdata clean
