@@ -414,11 +414,11 @@ func printPageFoot(w io.Writer) {
 	getTemplate().ExecuteTemplate(w, "footer", nil)
 }
 
-func printPageNav(w http.ResponseWriter, login *User, site *Site, qq *QIndex) {
+func printPageNav(w http.ResponseWriter, login *User, site *Site, qi *QIndex) {
 	getTemplate().ExecuteTemplate(w, "pageNav", map[string]any{
 		"Login":  login,
 		"Site":   site,
-		"QIndex": qq,
+		"QIndex": qi,
 	})
 }
 
@@ -426,11 +426,7 @@ func isCorrectPassword(inputPassword, hashedpwd string) bool {
 	if hashedpwd == "" && inputPassword == "" {
 		return true
 	}
-	err := bcrypt.CompareHashAndPassword([]byte(hashedpwd), []byte(inputPassword))
-	if err != nil {
-		return false
-	}
-	return true
+	return bcrypt.CompareHashAndPassword([]byte(hashedpwd), []byte(inputPassword)) == nil
 }
 
 func hashPassword(pwd string) string {
@@ -614,39 +610,14 @@ func createaccountHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		printPageHead(w, site, false)
 		printPageNav(w, login, site, nil)
 
-		fmt.Fprintf(w, "<section class=\"main\">\n")
-		fmt.Fprintf(w, "<form class=\"simpleform\" action=\"/createaccount/?from=%s\" method=\"post\">\n", url.QueryEscape(qfrom))
-		fmt.Fprintf(w, "<h1 class=\"heading\">Create Account</h1>")
-		if errmsg != "" {
-			fmt.Fprintf(w, "<div class=\"control\">\n")
-			fmt.Fprintf(w, "<p class=\"error\">%s</p>\n", errmsg)
-			fmt.Fprintf(w, "</div>\n")
-		}
-		fmt.Fprintf(w, "<div class=\"control\">\n")
-		fmt.Fprintf(w, "<label for=\"username\">username</label>\n")
-		fmt.Fprintf(w, "<input id=\"username\" name=\"username\" type=\"text\" size=\"20\" maxlength=\"20\" value=\"%s\">\n", f.username)
-		fmt.Fprintf(w, "</div>\n")
-
-		fmt.Fprintf(w, "<div class=\"control\">\n")
-		fmt.Fprintf(w, "<label for=\"email\">email</label>\n")
-		fmt.Fprintf(w, "<input id=\"email\" name=\"email\" type=\"email\" size=\"20\" value=\"%s\">\n", f.email)
-		fmt.Fprintf(w, "</div>\n")
-
-		fmt.Fprintf(w, "<div class=\"control\">\n")
-		fmt.Fprintf(w, "<label for=\"password\">password</label>\n")
-		fmt.Fprintf(w, "<input id=\"password\" name=\"password\" type=\"password\" size=\"20\" value=\"%s\">\n", f.password)
-		fmt.Fprintf(w, "</div>\n")
-
-		fmt.Fprintf(w, "<div class=\"control\">\n")
-		fmt.Fprintf(w, "<label for=\"password2\">re-enter password</label>\n")
-		fmt.Fprintf(w, "<input id=\"password2\" name=\"password2\" type=\"password\" size=\"20\" value=\"%s\">\n", f.password2)
-		fmt.Fprintf(w, "</div>\n")
-
-		fmt.Fprintf(w, "<div class=\"control\">\n")
-		fmt.Fprintf(w, "<button class=\"submit\">create account</button>\n")
-		fmt.Fprintf(w, "</div>\n")
-		fmt.Fprintf(w, "</form>\n")
-		fmt.Fprintf(w, "</section>\n")
+		getTemplate().ExecuteTemplate(w, "createAccount", map[string]any{
+			"QFrom":      qfrom,
+			"ErrMessage": errmsg,
+			"Username":   f.username,
+			"Email":      f.email,
+			"Password":   f.password,
+			"Password2":  f.password2,
+		})
 
 		printPageFoot(w)
 	}
@@ -1347,7 +1318,7 @@ LIMIT ? OFFSET ?`, join, where, orderby)
 		}
 		fmt.Fprintf(w, "</ul>\n")
 
-		baseurl := fmt.Sprintf("/?username=%s&cat=%s&tag=%s&latest=%s", qusername, qcat, qtag, qlatest)
+		baseurl := fmt.Sprintf("/?username=%s&cat=%d&tag=%s&latest=%s", qusername, qcat, qtag, qlatest)
 		printPagingNav(w, baseurl, qoffset, qlimit, nrows)
 		fmt.Fprintf(w, "</section>\n")
 		printPageFoot(w)
