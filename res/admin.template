@@ -1,0 +1,73 @@
+{{- define "adminSetup" -}}
+<section class="main">
+    <form class="simpleform mb-xl" action="/adminsetup/?from={{.QFrom | urlquery}}" method="post">
+    <h1 class="heading">Site Settings</h1>
+    {{ with .ErrMessage }}
+        <div class="control">
+        <p class="error">{{.}}</p>
+        </div>
+    {{ end }}
+
+    <div class="control">
+    <label for="title">site title</label>
+    <input id="title" name="title" type="text" size="30" maxlength="50" value="{{.Title | html}}">
+    </div>
+
+    <div class="control">
+    <label for="gravityf">gravity factor</label>
+    <input id="gravityf" name="gravityf" type="number" step="0.001" min="0" size="5" value="{{ if gt .Gravity 0.0 }}{{printf "%.2f" .Gravity}}{{end}}">
+    <p class="text-sm text-fade-2 text-italic mt-xs">
+    points = num_votes / (hours_since_submission + 2) ^ gravity_factor.<br>The gravity_factor determines how quickly points decrease as time passes.
+    </p>
+    </div>
+
+    <div class="control">
+    <button class="submit">submit</button>
+    </div>
+
+    </form>
+
+    <!-- Categories -->
+    <h1 class="heading mb-sm">Categories</h1>
+    <ul class="vertical-list mb-xl">
+      <li><a class="text-fade-2 text-xs" href="/createcat/?from={{"/adminsetup/" | urlquery}}">create new category</a></li>
+    {{ range .Cats }}
+        <li>
+          <div>{{ .Name | html }}</div>
+          <ul class="line-menu text-fade-2 text-xs">
+            <li><a href="/editcat?catid={{.Catid}}&from={{"/adminsetup/" | urlquery}}">edit</a></li>
+            {{ if ne .Catid 1 }}
+                <li><a href="/delcat?catid={{.Catid}}&from={{"/adminsetup/" | urlquery}}">delete</a></li>
+            {{ end }}
+          </ul>
+        </li>
+    {{ end }}
+    </ul>
+
+    <!-- Users -->
+    <h1 class="heading mb-sm">Users</h1>
+    <ul class="vertical-list mb-xl">
+        {{ range .Users }}
+        <li>
+        {{ if .Active }}
+            <div>{{ .Username | html }}</div>
+        {{ else }}
+            <div class="text-fade-2">({{ .Username | html }})</div>
+        {{ end }}
+
+        <ul class="line-menu text-fade-2 text-xs">
+          <li><a href="/edituser?userid={{.Userid}}&from={{"/adminsetup/" | urlquery}}">edit</a>
+        {{ if ne .Userid 1 }}
+            {{if .Active}}
+                <li><a href="/deactivateuser?userid={{.Userid}}&from={{"/adminsetup/" | urlquery}}">deactivate</a></li>
+            {{else}}
+                <li><a href="/activateuser?userid={{.Userid}}&from={{"/adminsetup/" | urlquery}}">activate</a></li>
+            {{end}}
+        {{ end }}
+        </ul>
+
+        </li>
+        {{ end }}
+    </ul>
+</section>
+{{ end -}}

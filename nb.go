@@ -676,94 +676,39 @@ func adminsetupHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		printPageHead(w, site, false)
 		printPageNav(w, login, site, nil)
 
-		fmt.Fprintf(w, "<section class=\"main\">\n")
-
-		fmt.Fprintf(w, "<form class=\"simpleform mb-xl\" action=\"/adminsetup/?from=%s\" method=\"post\">\n", url.QueryEscape(qfrom))
-		fmt.Fprintf(w, "<h1 class=\"heading\">Site Settings</h1>")
-		if errmsg != "" {
-			fmt.Fprintf(w, "<div class=\"control\">\n")
-			fmt.Fprintf(w, "<p class=\"error\">%s</p>\n", errmsg)
-			fmt.Fprintf(w, "</div>\n")
-		}
-		fmt.Fprintf(w, "<div class=\"control\">\n")
-		fmt.Fprintf(w, "<label for=\"title\">site title</label>\n")
-		fmt.Fprintf(w, "<input id=\"title\" name=\"title\" type=\"text\" size=\"30\" maxlength=\"50\" value=\"%s\">\n", escape(f.title))
-		fmt.Fprintf(w, "</div>\n")
-
-		fmt.Fprintf(w, "<div class=\"control\">\n")
-		fmt.Fprintf(w, "<label for=\"gravityf\">gravity factor</label>\n")
-		if f.gravityf >= 0 {
-			fmt.Fprintf(w, "<input id=\"gravityf\" name=\"gravityf\" type=\"number\" step=\"0.001\" min=\"0\" size=\"5\" value=\"%.2f\">\n", f.gravityf)
-		} else {
-			fmt.Fprintf(w, "<input id=\"gravityf\" name=\"gravityf\" type=\"number\" step=\"0.001\" min=\"0\" size=\"5\" value=\"\">\n")
-		}
-		fmt.Fprintf(w, "<p class=\"text-sm text-fade-2 text-italic mt-xs\">\n")
-		fmt.Fprintf(w, "points = num_votes / (hours_since_submission + 2) ^ gravity_factor.<br>The gravity_factor determines how quickly points decrease as time passes.\n")
-		fmt.Fprintf(w, "</p>\n")
-		fmt.Fprintf(w, "</div>\n")
-
-		fmt.Fprintf(w, "<div class=\"control\">\n")
-		fmt.Fprintf(w, "<button class=\"submit\">submit</button>\n")
-		fmt.Fprintf(w, "</div>\n")
-
-		fmt.Fprintf(w, "</form>\n")
-
-		// Categories
-		fmt.Fprintf(w, "<h1 class=\"heading mb-sm\">Categories</h1>\n")
-		fmt.Fprintf(w, "<ul class=\"vertical-list mb-xl\">\n")
-		fmt.Fprintf(w, "  <li><a class=\"text-fade-2 text-xs\" href=\"/createcat/?from=%s\">create new category</a></li>\n", url.QueryEscape("/adminsetup/"))
-		var cat Cat
+		var cats []Cat
 		s := "SELECT cat_id, name FROM cat ORDER BY cat_id"
-		rows, _ := db.Query(s)
-		for rows.Next() {
-			rows.Scan(&cat.Catid, &cat.Name)
-			fmt.Fprintf(w, "<li>\n")
-			fmt.Fprintf(w, "  <div>%s</div>\n", escape(cat.Name))
-			fmt.Fprintf(w, "  <ul class=\"line-menu text-fade-2 text-xs\">\n")
-			fmt.Fprintf(w, "    <li><a href=\"/editcat?catid=%d&from=%s\">edit</a></li>\n", cat.Catid, url.QueryEscape("/adminsetup/"))
-			if cat.Catid != 1 {
-				fmt.Fprintf(w, "    <li><a href=\"/delcat?catid=%d&from=%s\">delete</a></li>\n", cat.Catid, url.QueryEscape("/adminsetup/"))
-			}
-			fmt.Fprintf(w, "  </ul>\n")
-			fmt.Fprintf(w, "</li>\n")
-		}
-		fmt.Fprintf(w, "</ul>\n")
-
-		// Users
-		fmt.Fprintf(w, "<h1 class=\"heading mb-sm\">Users</h1>\n")
-		s = "SELECT user_id, username, active, email FROM user ORDER BY username"
 		rows, err := db.Query(s)
 		if handleDbErr(w, err, "adminsetuphandler") {
 			return
 		}
-
-		var u User
-		fmt.Fprintf(w, "<ul class=\"vertical-list mb-xl\">\n")
 		for rows.Next() {
-			rows.Scan(&u.Userid, &u.Username, &u.Active, &u.Email)
-			fmt.Fprintf(w, "<li>\n")
-			if u.Active {
-				fmt.Fprintf(w, "<div>%s</div>\n", escape(u.Username))
-			} else {
-				fmt.Fprintf(w, "<div class=\"text-fade-2\">(%s)</div>\n", escape(u.Username))
-			}
-
-			fmt.Fprintf(w, "<ul class=\"line-menu text-fade-2 text-xs\">\n")
-			fmt.Fprintf(w, "  <li><a href=\"/edituser?userid=%d&from=%s\">edit</a>\n", u.Userid, url.QueryEscape("/adminsetup/"))
-			if u.Userid != ADMIN_ID {
-				if u.Active {
-					fmt.Fprintf(w, "  <li><a href=\"/activateuser?userid=%d&setactive=0&from=%s\">deactivate</a>\n", u.Userid, url.QueryEscape("/adminsetup/"))
-				} else {
-					fmt.Fprintf(w, "  <li><a href=\"/activateuser?userid=%d&setactive=1&from=%s\">activate</a>\n", u.Userid, url.QueryEscape("/adminsetup/"))
-				}
-			}
-			fmt.Fprintf(w, "</ul>\n")
-
-			fmt.Fprintf(w, "</li>\n")
+			var cat Cat
+			rows.Scan(&cat.Catid, &cat.Name)
+			cats = append(cats, cat)
 		}
-		fmt.Fprintf(w, "</ul>\n")
 
-		fmt.Fprintf(w, "</section>\n")
+		var users []User
+		s = "SELECT user_id, username, active, email FROM user ORDER BY username"
+		rows, err = db.Query(s)
+		if handleDbErr(w, err, "adminsetuphandler") {
+			return
+		}
+		for rows.Next() {
+			var user User
+			rows.Scan(&user.Userid, &user.Username, &user.Active, &user.Email)
+			users = append(users, user)
+		}
+
+		getTemplate().ExecuteTemplate(w, "adminSetup", map[string]any{
+			"ErrMessage": errmsg,
+			"QFrom":      qfrom,
+			"Title":      f.title,
+			"Gravity":    f.gravityf,
+			"Cats":       cats,
+			"Users":      users,
+		})
+
 		printPageFoot(w)
 	}
 }
