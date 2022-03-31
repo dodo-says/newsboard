@@ -724,12 +724,9 @@ func usersetupHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		site := querySite(db)
 		printPageHead(w, site, false)
 		printPageNav(w, login, site, nil)
-		fmt.Fprintf(w, "<section class=\"main\">\n")
-
-		fmt.Fprintf(w, "<p class=\"\"><a href=\"/edituser?userid=%d&from=%s\">Edit Account</a></p>\n", login.Userid, url.QueryEscape("/usersetup/"))
-		fmt.Fprintf(w, "<p class=\"mt-base\"><a href=\"/edituser?userid=%d&setpwd=1&from=%s\">Set Password</a></p>\n", login.Userid, url.QueryEscape("/usersetup/"))
-
-		fmt.Fprintf(w, "</section>\n")
+		getTemplate().ExecuteTemplate(w, "userSetup", map[string]any{
+			"Login": login,
+		})
 		printPageFoot(w)
 	}
 }
@@ -815,51 +812,16 @@ func edituserHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		site := querySite(db)
 		printPageHead(w, site, false)
 		printPageNav(w, login, site, nil)
-
-		fmt.Fprintf(w, "<div class=\"main\">\n")
-		fmt.Fprintf(w, "<section class=\"main-content\">\n")
-		fmt.Fprintf(w, "<form class=\"simpleform\" action=\"/edituser/?userid=%d&setpwd=%s&from=%s\" method=\"post\">\n", quserid, qsetpwd, url.QueryEscape(qfrom))
-		fmt.Fprintf(w, "<h1 class=\"heading\">Edit User</h1>")
-		if errmsg != "" {
-			fmt.Fprintf(w, "<div class=\"control\">\n")
-			fmt.Fprintf(w, "<p class=\"error\">%s</p>\n", errmsg)
-			fmt.Fprintf(w, "</div>\n")
-		}
-		// ?setpwd=1 to set new password
-		if qsetpwd != "" {
-			fmt.Fprintf(w, "<div class=\"control displayonly\">\n")
-			fmt.Fprintf(w, "<label for=\"username\">username</label>\n")
-			fmt.Fprintf(w, "<input id=\"username\" name=\"username\" type=\"text\" size=\"20\" maxlength=\"20\" value=\"%s\" readonly>\n", f.username)
-			fmt.Fprintf(w, "</div>\n")
-
-			fmt.Fprintf(w, "<div class=\"control\">\n")
-			fmt.Fprintf(w, "<label for=\"password\">password</label>\n")
-			fmt.Fprintf(w, "<input id=\"password\" name=\"password\" type=\"password\" size=\"30\" value=\"%s\">\n", f.password)
-			fmt.Fprintf(w, "</div>\n")
-
-			fmt.Fprintf(w, "<div class=\"control\">\n")
-			fmt.Fprintf(w, "<label for=\"password2\">re-enter password</label>\n")
-			fmt.Fprintf(w, "<input id=\"password2\" name=\"password2\" type=\"password\" size=\"30\" value=\"%s\">\n", f.password2)
-			fmt.Fprintf(w, "</div>\n")
-		} else {
-			fmt.Fprintf(w, "<div class=\"control\">\n")
-			fmt.Fprintf(w, "<label for=\"username\">username</label>\n")
-			fmt.Fprintf(w, "<input id=\"username\" name=\"username\" type=\"text\" size=\"20\" maxlength=\"20\" value=\"%s\">\n", f.username)
-			fmt.Fprintf(w, "</div>\n")
-
-			fmt.Fprintf(w, "<div class=\"control\">\n")
-			fmt.Fprintf(w, "<label for=\"email\">email</label>\n")
-			fmt.Fprintf(w, "<input id=\"email\" name=\"email\" type=\"email\" size=\"20\" value=\"%s\">\n", f.email)
-			fmt.Fprintf(w, "</div>\n")
-		}
-
-		fmt.Fprintf(w, "<div class=\"control\">\n")
-		fmt.Fprintf(w, "<button class=\"submit\">update user</button>\n")
-		fmt.Fprintf(w, "</div>\n")
-		fmt.Fprintf(w, "</form>\n")
-		fmt.Fprintf(w, "</section>\n")
-
-		fmt.Fprintf(w, "</div>\n")
+		getTemplate().ExecuteTemplate(w, "editUser", map[string]any{
+			"QUserID":   quserid,
+			"QSetPwd":   qsetpwd,
+			"QFrom":     qfrom,
+			"ErrMsg":    errmsg,
+			"UserName":  f.username,
+			"Password":  f.password,
+			"Password2": f.password2,
+			"Email":     f.email,
+		})
 		printPageFoot(w)
 	}
 }

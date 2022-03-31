@@ -1,0 +1,51 @@
+{{- define "userSetup" -}}
+<section class="main">
+    <p class="><a href="/edituser?userid={{.Login.Userid}}&from={{"/usersetup/" | urlquery}}">Edit Account</a></p>
+    <p class="mt-base"><a href="/edituser?userid={{.Login.Userid}}&setpwd=1&from={{"/usersetup/" | urlquery}}">Set Password</a></p>
+</section>
+{{ end -}}
+
+{{- define "editUser" -}}
+<div class="main">
+    <section class="main-content">
+    <form class="simpleform" action="/edituser/?userid={{.QUserID}}&setpwd={{.QSetPwd}}&from={{.QFrom | urlquery}}" method="post">
+    <h1 class="heading">Edit User</h1>
+    {{ with .ErrMessage }}
+        <div class="control">
+        <p class="error">{{.}}</p>
+        </div>
+    {{ end }}
+    {{ if ne .QSetPwd ""}}
+        <div class="control displayonly">
+        <label for="username">username</label>
+        <input id="username" name="username" type="text" size="20" maxlength="20" value="{{.UserName}}" readonly>
+        </div>
+
+        <div class="control">
+        <label for="password">password</label>
+        <input id="password" name="password" type="password" size="30" value="{{.Password}}">
+        </div>
+
+        <div class="control">
+        <label for="password2">re-enter password</label>
+        <input id="password2" name="password2" type="password" size="30" value="{{.Password2}}">
+        </div>
+    {{ else }}
+        <div class="control">
+        <label for="username">username</label>
+        <input id="username" name="username" type="text" size="20" maxlength="20" value="{{.UserName}}">
+        </div>
+
+        <div class="control">
+        <label for="email">email</label>
+        <input id="email" name="email" type="email" size="20" value="{{.Email}}">
+        </div>
+    {{ end }}
+
+    <div class="control">
+    <button class="submit">update user</button>
+    </div>
+    </form>
+    </section>
+</div>
+{{ end -}}
