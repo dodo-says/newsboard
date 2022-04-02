@@ -877,36 +877,14 @@ func activateuserHandler(db *sql.DB) func(http.ResponseWriter, *http.Request) {
 		site := querySite(db)
 		printPageHead(w, site, false)
 		printPageNav(w, login, site, nil)
+		getTemplate().ExecuteTemplate(w, "activateUser", map[string]any{
+			"UserID":     quserid,
+			"SetActive":  qsetactive,
+			"QFrom":      qfrom,
+			"ErrMessage": errmsg,
+			"UserName":   u.Username,
+		})
 
-		fmt.Fprintf(w, "<div class=\"main\">\n")
-		fmt.Fprintf(w, "<section class=\"main-content\">\n")
-		fmt.Fprintf(w, "<form class=\"simpleform\" action=\"/activateuser/?userid=%d&setactive=%d&from=%s\" method=\"post\">\n", quserid, qsetactive, url.QueryEscape(qfrom))
-		if qsetactive == 0 {
-			fmt.Fprintf(w, "<h1 class=\"heading\">Deactivate User</h1>")
-		} else {
-			fmt.Fprintf(w, "<h1 class=\"heading\">Activate User</h1>")
-		}
-		if errmsg != "" {
-			fmt.Fprintf(w, "<div class=\"control\">\n")
-			fmt.Fprintf(w, "<p class=\"error\">%s</p>\n", errmsg)
-			fmt.Fprintf(w, "</div>\n")
-		}
-		fmt.Fprintf(w, "<div class=\"control displayonly\">\n")
-		fmt.Fprintf(w, "<label for=\"username\">username</label>\n")
-		fmt.Fprintf(w, "<input id=\"username\" name=\"username\" type=\"text\" size=\"20\" maxlength=\"20\" readonly value=\"%s\">\n", u.Username)
-		fmt.Fprintf(w, "</div>\n")
-
-		fmt.Fprintf(w, "<div class=\"control\">\n")
-		if qsetactive == 0 {
-			fmt.Fprintf(w, "<button class=\"submit\">deactivate user</button>\n")
-		} else {
-			fmt.Fprintf(w, "<button class=\"submit\">activate user</button>\n")
-		}
-		fmt.Fprintf(w, "</div>\n")
-		fmt.Fprintf(w, "</form>\n")
-		fmt.Fprintf(w, "</section>\n")
-
-		fmt.Fprintf(w, "</div>\n")
 		printPageFoot(w)
 	}
 }
@@ -935,22 +913,14 @@ func getPointCountUnit(points int) string {
 }
 
 func printUpvote(w http.ResponseWriter, nvotes int, selfvote int) {
-	var selfvoteclass string
-	if selfvote == 1 {
-		selfvoteclass = "selfvote "
-	}
-	fmt.Fprintf(w, "<a class=\"upvote %s mx-auto\">\n", selfvoteclass)
-	fmt.Fprintf(w, "<svg viewbox=\"0 0 100 100\">\n")
-	fmt.Fprintf(w, "  <polygon points=\"50 15, 100 100, 0 100\"/>\n")
-	fmt.Fprintf(w, "</svg>\n")
-	fmt.Fprintf(w, "</a>\n")
-	fmt.Fprintf(w, "<div class=\"votectr mx-auto text-fade-2 text-sm\">%d</div>\n", nvotes)
+	getTemplate().ExecuteTemplate(w, "upvote", map[string]any{
+		"SelfVote": selfvote > 0,
+		"Vote":     nvotes,
+	})
 }
 
 func printCommentMarker(w http.ResponseWriter) {
-	fmt.Fprintf(w, "<svg viewbox=\"0 0 100 100\" class=\"upvote\">\n")
-	fmt.Fprintf(w, "  <rect x=\"25\" y=\"25\" width=\"40\" height=\"40\"/>\n")
-	fmt.Fprintf(w, "</svg>\n")
+	getTemplate().ExecuteTemplate(w, "commentMarker", nil)
 }
 
 func printSubmissionEntry(w http.ResponseWriter, r *http.Request, db *sql.DB, qi *QIndex, e *Entry, tt []string, submitter *User, login *User, ncomments, totalvotes int, selfvote int, points float64, showBody bool) {

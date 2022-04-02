@@ -49,3 +49,34 @@
     </section>
 </div>
 {{ end -}}
+
+{{- define "avtivateUser" -}}
+<div class="main">
+    <section class="main-content">
+    <form class="simpleform" action="/activateuser/?userid={{.UserID}}&setactive={{.SetActive}}&from={{.QFrom | urlquery}}" method="post">
+    {{ if eq .SetActive 0 }}
+        <h1 class="heading">Deactivate User</h1>")
+    {{ else }}
+        <h1 class="heading">Activate User</h1>")
+    {{ end }}
+    {{ with .ErrMessage }}
+        <div class="control">
+        <p class="error">{{.}}</p>
+        </div>
+    {{ end }}
+    <div class="control displayonly">
+    <label for="username">username</label>
+    <input id="username" name="username" type="text" size="20" maxlength="20" readonly value="{{.UserName}}">
+    </div>
+
+    <div class="control">
+    {{ if eq .SetActive 0 }}
+        <button class="submit">deactivate user</button>
+    {{ else }}
+        <button class="submit">activate user</button>
+    {{ end }}
+    </div>
+    </form>
+    </section>
+</div>
+{{ end -}}

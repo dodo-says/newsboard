@@ -1,0 +1,14 @@
+{{ define "upvote" }}
+<a class="upvote {{if .SelfVote}}selfvote {{end}}mx-auto">
+<svg viewbox="0 0 100 100">
+  <polygon points="50 15, 100 100, 0 100"/>
+</svg>
+</a>
+<div class="votectr mx-auto text-fade-2 text-sm">{{.Vote}}</div>
+{{ end }}
+
+{{ define "commentMarker" }}
+<svg viewbox=\"0 0 100 100\" class=\"upvote\">
+  <rect x=\"25\" y=\"25\" width=\"40\" height=\"40\"/>
+</svg>
+{{ end }}
